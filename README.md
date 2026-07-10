@@ -1,491 +1,340 @@
 # ViralPick AI
 
-## 基于 Python 的短视频电商智能选品与增长决策平台
-
-ViralPick AI 是一个面向短视频电商场景的数据分析与智能决策平台。项目基于 Python 技术栈，围绕商品选品、爆品识别、用户评论分析、竞品对比、销售趋势预测和运营建议生成等核心需求，帮助商家从“看数据”升级为“用数据做决策”。
-
-本项目适用于课程实践、数据分析项目展示、Python Web 项目训练、AI 电商数据分析场景探索等方向。
-
----
-
-## 一、项目背景
-
-随着短视频电商和直播带货快速发展，商家在选品、定价、内容投放和竞品分析中面临大量数据决策问题。传统数据看板通常只展示销量、价格、评论数等基础指标，难以进一步回答以下问题：
-
-* 哪些商品具有爆品潜力？
-* 哪些品类值得重点运营？
-* 用户真正关注商品的哪些方面？
-* 竞品的优势和短板在哪里？
-* 商品后续销量趋势如何？
-* 商家应该如何调整价格、内容和运营策略？
-
-ViralPick AI 尝试通过数据分析、文本处理、评分模型、趋势预测和 AI 报告生成，将短视频电商数据转化为更直观、更可执行的运营建议。
-
----
-
-## 二、项目定位
-
-本项目不是简单的数据可视化系统，而是一个：
-
-> 面向短视频电商商家的智能选品与增长决策平台。
-
-系统通过分析商品数据、销售数据、评论数据、价格数据、短视频互动数据和竞品数据，辅助商家完成商品评估、爆品判断、用户需求洞察和运营策略制定。
-
----
-
-## 三、核心功能
-
-### 1. 数据管理模块
-
-支持对电商数据进行导入、清洗、存储和管理。
-
-主要数据包括：
-
-* 商品基础数据
-* 销量数据
-* 销售额数据
-* 商品价格数据
-* 用户评论数据
-* 商品评分数据
-* 品类数据
-* 店铺数据
-* 短视频互动数据
-* 竞品数据
-
----
-
-### 2. 商品销售分析模块
-
-对商品销售表现进行统计分析和可视化展示。
-
-主要功能包括：
-
-* 商品销量排行
-* 商品销售额排行
-* 不同品类销售占比
-* 不同价格区间销量分布
-* 商品评分与销量关系分析
-* 评论数量与销量关系分析
-* 店铺商品表现对比
-
----
-
-### 3. 爆品潜力识别模块
-
-系统根据多维指标构建爆品潜力评分模型，对商品进行综合评估。
-
-评分维度包括：
-
-* 销量增长率
-* 销售额增长率
-* 评论增长率
-* 好评率
-* 价格竞争力
-* 用户情感得分
-* 短视频点赞量
-* 收藏量
-* 转发量
-* 转化率
-
-输出结果包括：
-
-* 爆品潜力排行榜
-* 高增长商品榜
-* 高风险商品榜
-* 推荐重点运营商品
-
----
-
-### 4. 用户评论情感分析模块
-
-对商品评论文本进行自然语言处理，提取用户真实反馈。
-
-主要功能包括：
-
-* 评论分词
-* 高频关键词提取
-* 好评关键词分析
-* 差评关键词分析
-* 评论情感倾向判断
-* 用户痛点归纳
-* 用户需求总结
-
-通过该模块，系统可以帮助商家发现用户关注的核心问题，例如质量、价格、物流、包装、售后、尺码、使用体验等。
-
----
-
-### 5. 竞品对比分析模块
-
-针对同类商品进行横向比较，辅助商家判断自身商品的市场位置。
-
-比较维度包括：
-
-* 商品价格
-* 商品销量
-* 商品销售额
-* 评论数量
-* 商品评分
-* 好评率
-* 差评率
-* 用户关注点
-* 商品卖点
-* 主要问题
-
-输出结果包括：
-
-* 本商品优势分析
-* 本商品短板分析
-* 竞品卖点分析
-* 定价优化建议
-* 差异化运营建议
-
----
-
-### 6. 销售趋势预测模块
-
-基于历史销售数据，对商品或品类的未来销售趋势进行预测。
-
-可预测内容包括：
-
-* 未来 7 天销量
-* 未来 30 天销量
-* 商品销售额趋势
-* 品类热度变化
-* 商品生命周期阶段
-
-可选算法包括：
-
-* 线性回归
-* 随机森林
-* XGBoost
-* ARIMA
-* Prophet
-
----
-
-### 7. AI 运营建议生成模块
-
-系统根据商品分析、评论分析、竞品分析和趋势预测结果，自动生成运营分析报告。
-
-报告内容包括：
-
-* 当前商品表现总结
-* 爆品潜力判断
-* 用户需求洞察
-* 竞品对比结论
-* 定价建议
-* 内容投放建议
-* 商品优化建议
-* 运营风险提示
-
-最终生成：
-
-> 《短视频电商选品与运营分析报告》
-
----
-
-## 四、技术栈
-
-### 后端
-
-* Python
-* Flask / FastAPI
-
-### 数据处理
-
-* pandas
-* numpy
-
-### 文本分析
-
-* jieba
-* SnowNLP
-* scikit-learn
-
-### 机器学习与预测
-
-* scikit-learn
-* XGBoost
-* Prophet / ARIMA
-
-### 数据可视化
-
-* ECharts
-* pyecharts
-
-### 数据库
-
-* SQLite
-* MySQL
-
-### 前端
-
-* HTML
-* CSS
-* JavaScript
-* Vue，可选
-
-### 其他
-
-* Git
-* Docker，可选
-* 大模型 API，可选
-
----
-
-## 五、系统流程
-
-```text
-数据导入
-   ↓
-数据清洗
-   ↓
-商品销售分析
-   ↓
-评论文本分析
-   ↓
-竞品对比分析
-   ↓
-爆品潜力评分
-   ↓
-销售趋势预测
-   ↓
-AI 运营报告生成
-   ↓
-可视化展示与决策建议
+> 基于 Python 的多平台电商智能经营与增长决策平台
+
+[![CI](https://github.com/kechanghao666/ViralPick-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/kechanghao666/ViralPick-AI/actions/workflows/ci.yml)
+
+ViralPick AI 面向课程实践、本地演示和轻量经营分析场景，将商品、销售、订单、评论、库存、售后、流量、广告与内容数据统一接入，形成“数据治理 → 经营分析 → 增长判断 → 趋势预测 → 报告输出 → 智能问答”的完整闭环。
+
+项目不是简单的数据可视化页面。后端已经采用 `routes → services → repositories` 分层结构，前端是一套无需构建工具的原生单页应用，并包含账号权限、团队协作、审计、报告分享、备份恢复和自动化任务等产品化基础能力。
+
+## 项目概览
+
+| 项目 | 说明 |
+| --- | --- |
+| 中文名称 | 基于 Python 的多平台电商智能经营与增长决策平台 |
+| 当前版本 | `0.2.0` |
+| 作者 | 柯长浩（20241524） |
+| 后端 | Python、Flask、pandas、numpy、scikit-learn、jieba |
+| 前端 | HTML、CSS、JavaScript、ECharts |
+| 数据库 | SQLite |
+| 报告导出 | DOCX、PDF、HTML、Markdown |
+| 运行方式 | 本地 Python、Gunicorn、Docker、Docker Compose |
+
+## 核心功能
+
+系统前端保持七个主要功能中心：
+
+1. **经营驾驶舱**：销售额、订单量、客单价、转化率、退款率、投产比、经营趋势、风险提醒和今日动作。
+2. **数据接入中心**：CSV / Excel 上传、数据类型识别、字段映射、质量检查、错误报告和导入任务记录。
+3. **商品增长中心**：商品货架、销售排行、价格带分析、类目表现、爆品潜力和风险商品识别。
+4. **用户口碑中心**：评论情绪、好评关键词、差评归因、用户痛点和售后联动。
+5. **投放内容中心**：广告花费、曝光、点击、转化、ROI、素材表现和内容优化建议。
+6. **趋势预测中心**：单商品、类目或全局口径的销量与销售额预测，以及补货、滞销和售后风险提示。
+7. **经营报告中心**：生成正式经营分析报告，并支持多格式导出、定时任务和只读分享链接。
+
+此外，系统还包含：
+
+- 全局智能经营助手：结合当前商品、经营数据和本地知识库回答问题。
+- 本地 TF-IDF 字符 n-gram 知识索引：无需外部向量数据库即可完成业务资料检索。
+- 可选大模型增强：当前适配 Spark X 风格的 `chat/completions` 接口；默认关闭，异常时自动回退本地规则答案。
+- 登录、工作空间、团队邀请、角色权限和审计日志。
+- 爆品评分模型版本与权重管理。
+- 报告计划、邮件交付记录、失败重试和品牌模板。
+- 运维状态、Webhook 告警、SQLite 备份校验与受控恢复。
+- 平台连接与授权流程演示接口；真实平台同步必须使用合法授权的官方 API。
+
+## 技术实现
+
+```mermaid
+flowchart LR
+    UI["原生单页前端<br/>HTML / CSS / JavaScript / ECharts"] --> API["Flask API"]
+    API --> Routes["Routes<br/>请求与响应"]
+    Routes --> Services["Services<br/>分析、预测、报告、助手"]
+    Services --> Repositories["Repositories<br/>数据访问"]
+    Repositories --> DB[("SQLite")]
+    Services --> CSV["Processed CSV"]
+    Services --> KB["本地 TF-IDF 知识索引"]
+    Services -. 可选增强 .-> LLM["外部大模型 API"]
 ```
 
----
+### 爆品潜力评分
 
-## 六、项目结构
+系统默认评分模型由七个维度组成，也支持在数据库中创建并激活自定义模型版本：
 
-```text
-ViralPick-AI/
-├── backend/                    # 后端服务
-│   ├── app.py                   # Flask/FastAPI 启动入口
-│   ├── config.py                # 系统配置
-│   ├── routes/                  # 接口路由
-│   ├── services/                # 业务逻辑
-│   ├── models/                  # 数据模型
-│   └── utils/                   # 工具函数
-│
-├── data/                        # 数据文件
-│   ├── raw/                     # 原始数据
-│   ├── processed/               # 清洗后数据
-│   └── mock/                    # 模拟数据
-│
-├── analysis/                    # 数据分析模块
-│   ├── sales_analysis.py        # 销售分析
-│   ├── hot_product_score.py     # 爆品评分
-│   ├── sentiment_analysis.py    # 评论情感分析
-│   ├── competitor_analysis.py   # 竞品分析
-│   └── sales_forecast.py        # 销售预测
-│
-├── frontend/                    # 前端页面
-│   ├── index.html
-│   ├── assets/
-│   ├── pages/
-│   └── components/
-│
-├── reports/                     # 运营分析报告
-│   └── sample_report.md
-│
-├── docs/                        # 项目文档
-│   ├── project_start_report.md
-│   ├── requirement.md
-│   └── database_design.md
-│
-├── requirements.txt             # Python 依赖
-├── README.md                    # 项目说明文档
-└── LICENSE                      # 开源协议
+| 维度 | 默认权重 |
+| --- | ---: |
+| 销量增长率 | 20% |
+| 销售额增长率 | 20% |
+| 好评率 | 15% |
+| 评论热度 | 10% |
+| 价格竞争力 | 15% |
+| 内容互动表现 | 15% |
+| 转化率 | 5% |
+
+### 评论与预测
+
+- 评论分析使用 `jieba` 分词、停用词过滤和规则归因，主流程不依赖大模型。
+- 趋势预测默认使用 scikit-learn `LinearRegression`，异常时回退到 numpy 线性拟合。
+- `/api/forecast/sales` 支持 `product_id`、`category` 或全局三种预测口径。
+- 报告和助手优先使用本地经营数据与规则；只有显式启用后才调用外部模型。
+
+## 数据规模与合规边界
+
+仓库中的 `data/processed/` 是可复现的课程演示数据。当前数据规模如下：
+
+| 数据集 | 记录数 |
+| --- | ---: |
+| 商品 | 24 |
+| 每日销售 | 2,160 |
+| 每日订单经营 | 2,160 |
+| 评论 | 543 |
+| 库存 | 720 |
+| 售后 | 72 |
+| 广告投放 | 540 |
+| 流量 | 2,160 |
+| 内容运营 | 96 |
+| 视频互动 | 24 |
+| 市场对照数据 | 72 |
+
+数据来源与使用边界：
+
+- 商品字段参考 JD.com 公开电商数据结构。
+- 评论语言与情感结构参考 ChineseNlpCorpus `online_shopping_10_cats`。
+- 销售、订单、库存、投放、流量、趋势和市场对照指标为本地演示或派生经营数据。
+- 项目不抓取受限平台页面，不绕过平台限制，不应将演示数据描述为真实平台实时数据。
+- 正式使用时应导入商家自有、已授权或合法公开来源的数据。
+
+详细说明见 [`data/README.md`](data/README.md)。
+
+## 快速启动
+
+### 1. 环境要求
+
+- Python 3.11 或更高版本
+- pip
+- Git
+- 可选：Node.js（仅用于 JavaScript 语法检查）
+- 可选：Docker Desktop
+
+### 2. Windows PowerShell 启动
+
+```powershell
+git clone https://github.com/kechanghao666/ViralPick-AI.git
+Set-Location ViralPick-AI
+
+py -3.11 -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+# 首次克隆时创建演示数据库
+python scripts\init_database.py --force
+python scripts\migrate_database.py
+
+# 启动前后端一体服务
+python backend\app.py
 ```
 
----
+如果电脑没有 `py -3.11`，可改用：
 
-## 七、快速开始
+```powershell
+python -m venv .venv
+```
 
-### 1. 克隆项目
+### 3. macOS / Linux 启动
 
 ```bash
-git clone https://github.com/your-username/ViralPick-AI.git
+git clone https://github.com/kechanghao666/ViralPick-AI.git
 cd ViralPick-AI
-```
 
-### 2. 创建虚拟环境
+python3 -m venv .venv
+source .venv/bin/activate
 
-```bash
-python -m venv venv
-```
-
-Windows：
-
-```bash
-venv\Scripts\activate
-```
-
-macOS / Linux：
-
-```bash
-source venv/bin/activate
-```
-
-### 3. 安装依赖
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. 初始化数据
-
-```bash
-python analysis/data_init.py
-```
-
-### 5. 启动后端服务
-
-```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python scripts/init_database.py --force
+python scripts/migrate_database.py
 python backend/app.py
 ```
 
-### 6. 访问系统
+### 4. 访问系统
 
-在浏览器中打开：
+- 系统首页：<http://127.0.0.1:5000>
+- 存活检查：<http://127.0.0.1:5000/api/health>
+- 就绪检查：<http://127.0.0.1:5000/api/ready>
+
+首次初始化会创建本地演示管理员：
 
 ```text
-http://127.0.0.1:5000
+邮箱：demo@viralpick.ai
+密码：ViralPick@2026
 ```
 
----
+该账号仅用于本地课程演示。公开部署前必须通过环境变量更换默认邮箱和密码，并重新初始化数据库。
 
-## 八、数据说明
+### 5. 已有数据库升级
 
-本项目初始版本支持以下数据来源：
+如果本地已经存在 `data/database/viralpick.db`，不要再次使用 `--force`，否则会覆盖当前数据库。升级结构时执行：
 
-1. 公开电商数据集
-2. 自定义 CSV / Excel 数据
-3. 模拟短视频电商业务数据
-4. 后续可扩展接入合法授权的平台 API
+```powershell
+python scripts\migrate_database.py --dry-run
+python scripts\migrate_database.py
+```
 
-演示数据字段示例：
+### 6. 可选：提前构建本地知识库
 
-| 字段名             | 含义     |
-| --------------- | ------ |
-| product_id      | 商品 ID  |
-| product_name    | 商品名称   |
-| category        | 商品品类   |
-| price           | 商品价格   |
-| sales           | 商品销量   |
-| gmv             | 商品销售额  |
-| rating          | 商品评分   |
-| comment_count   | 评论数量   |
-| positive_rate   | 好评率    |
-| video_likes     | 短视频点赞数 |
-| video_shares    | 短视频转发数 |
-| conversion_rate | 转化率    |
-| sentiment_score | 评论情感得分 |
+系统在首次查询时会自动生成知识索引，也可以手动执行：
 
-说明：
-项目演示版本优先使用公开数据集、模拟数据或脱敏数据，不以绕过平台限制的方式获取受限数据。
+```powershell
+python scripts\build_knowledge_base.py
+```
 
----
+## Docker 启动
 
-## 九、项目亮点
+```powershell
+docker compose up --build
+```
 
-### 1. 从数据展示升级为智能决策
+随后访问 <http://127.0.0.1:5000>，使用上面的演示管理员登录。
 
-系统不仅展示销量、价格和评论等基础数据，还能进一步输出爆品推荐、竞品分析和运营建议。
+停止并清理容器：
 
-### 2. 融合结构化数据与非结构化文本
+```powershell
+docker compose down
+```
 
-项目既分析销量、价格、评分等结构化数据，也分析用户评论文本等非结构化数据。
+当前 Compose 配置面向单机演示，没有为 SQLite 配置持久化卷；容器重建时不要把它当作生产数据存储方案。生产部署前还应修改默认账号、收紧 CORS、配置 HTTPS 和持久化数据库。
 
-### 3. 构建爆品潜力评分模型
+## 环境变量
 
-系统通过多维指标综合评估商品潜力，辅助商家发现值得重点运营的商品。
+配置项统一通过 `os.getenv` 读取，`.env.example` 是配置参考文件，项目当前不会自动加载 `.env`。请在 PowerShell、Shell、Docker 或部署平台中注入变量。
 
-### 4. 支持评论情感分析
+PowerShell 示例：
 
-通过自然语言处理技术分析用户评论，提炼用户真实需求和商品改进方向。
+```powershell
+$env:VIRALPICK_ENV = "production"
+$env:VIRALPICK_SERVE_FRONTEND = "1"
+$env:VIRALPICK_AUTH_REQUIRED = "1"
+$env:VIRALPICK_DEFAULT_ADMIN_EMAIL = "admin@example.com"
+$env:VIRALPICK_DEFAULT_ADMIN_PASSWORD = "请替换为强密码"
 
-### 5. 支持销售趋势预测
+python scripts\init_database.py --force
+python backend\app.py
+```
 
-基于历史销售数据预测未来销售趋势，为商家选品和运营提供参考。
+常用变量：
 
-### 6. 支持 AI 运营报告生成
+| 变量 | 默认值 / 用途 |
+| --- | --- |
+| `VIRALPICK_API_HOST` | `127.0.0.1` |
+| `VIRALPICK_API_PORT` | `5000` |
+| `VIRALPICK_DB_PATH` | `data/database/viralpick.db` |
+| `VIRALPICK_SERVE_FRONTEND` | 开发环境默认开启 |
+| `VIRALPICK_AUTH_REQUIRED` | 生产环境默认开启 |
+| `VIRALPICK_CORS_ORIGINS` | 本地默认 `*`，生产环境应指定域名 |
+| `VIRALPICK_RATE_LIMIT_ENABLED` | 生产环境默认开启进程内限流 |
+| `VIRALPICK_LLM_ENABLED` | 默认 `0`，不主动调用外部模型 |
+| `VIRALPICK_LLM_API_PASSWORD` | 外部模型凭据，禁止提交到 Git |
+| `VIRALPICK_REPORT_DELIVERY_ENABLED` | 默认 `0`，控制 SMTP 报告交付 |
+| `VIRALPICK_ALERTS_ENABLED` | 默认 `0`，控制 Webhook 告警 |
 
-系统能够自动生成运营分析报告，将复杂数据分析结果转化为可读、可执行的商业建议。
+完整变量见 [`.env.example`](.env.example) 和 [`docs/deployment.md`](docs/deployment.md)。
 
----
+## 测试与验证
 
-## 十、页面规划
+静态检查和测试套件：
 
-### 首页数据看板
+```powershell
+python -m compileall backend scripts tests
+node --check frontend\assets\js\api.js
+node --check frontend\assets\js\app.js
+node --check frontend\assets\js\charts.js
+node --check frontend\assets\js\format.js
+node --check frontend\assets\js\report.js
+python -m pytest -q
+```
 
-展示系统核心指标，包括商品总数、总销售额、总销量、平均评分、爆品数量等。
+服务启动后可在另一个终端运行完整 HTTP smoke test：
 
-### 商品销售分析页
+```powershell
+python scripts\smoke_test.py --base-url http://127.0.0.1:5000 --check-frontend
+```
 
-展示商品销量排行、销售额排行、品类占比和价格区间分布。
+GitHub Actions 会自动执行 Python 编译、前端 JavaScript 语法检查、pytest 和 Docker 镜像构建。
 
-### 爆品潜力分析页
+## 项目结构
 
-展示爆品潜力评分、推荐商品列表和高风险商品提示。
+```text
+ViralPick-AI/
+├── backend/
+│   ├── app.py                 # Flask 应用入口
+│   ├── config.py              # 环境变量与路径配置
+│   ├── db.py                  # SQLite 访问基础设施
+│   ├── routes/api.py          # API 路由
+│   ├── services/              # 分析、预测、报告、助手等业务服务
+│   ├── repositories/          # 数据仓储层
+│   └── utils/                 # 校验与响应工具
+├── data/
+│   ├── processed/             # 可复现的演示经营数据
+│   ├── import_examples/       # 前端导入示例
+│   └── README.md              # 数据来源与合规说明
+├── frontend/
+│   ├── index.html             # 单页应用结构
+│   └── assets/                # CSS、JavaScript、ECharts 与商品图片
+├── scripts/                   # 初始化、迁移、知识库、自动化和 smoke 脚本
+├── tests/                     # pytest 自动化测试
+├── docs/                      # 需求、设计、接口、部署与产品化文档
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── wsgi.py                    # Gunicorn 入口
+```
 
-### 评论情感分析页
+## 主要 API
 
-展示评论情感分布、好评关键词、差评关键词和用户痛点。
+| 能力 | 代表接口 |
+| --- | --- |
+| 健康与就绪 | `GET /api/health`、`GET /api/ready` |
+| 登录与权限 | `POST /api/auth/login`、`GET /api/auth/me` |
+| 经营驾驶舱 | `GET /api/dashboard/executive` |
+| 数据导入 | `POST /api/imports/preview`、`POST /api/imports/commit` |
+| 商品与评分 | `GET /api/products`、`GET /api/hot-products/scoring` |
+| 评论与口碑 | `GET /api/comments/keywords` |
+| 投放与库存 | `GET /api/marketing/summary`、`GET /api/inventory/summary` |
+| 趋势预测 | `GET /api/forecast/sales` |
+| 经营报告 | `POST /api/reports/generate`、`GET /api/reports/<id>/export` |
+| 智能助手 | `POST /api/assistant/chat` |
+| 团队与审计 | `GET /api/team/members`、`GET /api/audit/logs` |
+| 运维与备份 | `GET /api/ops/status`、`POST /api/ops/backups` |
 
-### 竞品对比页
+完整接口见 [`docs/api.md`](docs/api.md)。
 
-展示同类商品的价格、销量、评分、评论和卖点对比。
+## 文档索引
 
-### 销售趋势预测页
+- [需求分析](docs/requirements_analysis.md)
+- [系统设计](docs/system_design.md)
+- [数据库设计](docs/database_design.md)
+- [API 文档](docs/api.md)
+- [前端设计说明](docs/frontend_design.md)
+- [部署说明](docs/deployment.md)
+- [权限模型](docs/permission_model.md)
+- [数据库迁移](docs/database_migrations.md)
+- [产品化就绪清单](docs/product_readiness.md)
 
-展示未来销量预测曲线和品类趋势变化。
+## 当前边界
 
-### AI 运营报告页
+本项目已经具备完整课程展示与单机运行能力，但不应直接等同于成熟商业 SaaS：
 
-生成并展示短视频电商选品与运营分析报告。
+- SQLite 适合课程演示和轻量单机部署，不适合高并发、多实例写入。
+- 平台连接模块目前用于演示授权、状态和同步流程，不代表已接通所有平台真实接口。
+- 当前尚未提供完整租户数据隔离、MFA、密码找回和生产级分布式任务队列。
+- 内置限流是单进程内存实现，多实例部署需要 API 网关或 Redis 等外部限流。
+- 外部大模型、SMTP 和 Webhook 均默认关闭，凭据必须通过 Secret 或环境变量注入。
+- 仓库中的经营指标为课程演示数据，只能用于研究、开发和本地展示。
 
----
+## 项目声明
 
-## 十一、后续优化方向
-
-* 接入真实授权电商平台 API
-* 引入更精细的用户画像分析
-* 优化爆品潜力评分模型
-* 增加商品推荐算法
-* 增加直播间数据分析
-* 增加达人带货效果分析
-* 接入大模型生成更自然的运营建议
-* 支持 Docker 部署
-* 支持多用户权限管理
-
----
-
-## 十二、项目适用场景
-
-* 短视频电商选品分析
-* 直播带货运营分析
-* 商品销售趋势预测
-* 商品评论情感分析
-* 竞品监控与对比
-* 电商数据可视化课程设计
-* Python 数据分析综合实践
-* AI + 电商方向项目展示
-
----
-
-## 十三、项目声明
-
-本项目主要用于课程实践、技术学习和项目展示。项目演示数据可来自公开数据集、模拟数据或脱敏数据。若后续接入真实电商平台数据，应遵守对应平台规则、数据安全要求和隐私保护规范。
-
----
-
-## 十四、作者
-
-拟制人：柯长浩
-
-项目名称：ViralPick AI
-
-中文名称：基于 Python 的短视频电商智能选品与增长决策平台
+本项目主要用于课程实践、技术学习和项目展示。使用者应遵守数据来源平台的服务条款、隐私要求和相关法律法规，不得将演示数据冒充真实平台实时经营数据。

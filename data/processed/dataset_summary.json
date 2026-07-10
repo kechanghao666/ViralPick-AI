@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-07-05T15:12:43.378670",
+  "source_datasets": [
+    {
+      "name": "JD.com公开电商数据字段结构参考",
+      "url": "https://yongfeng.me/dataset/",
+      "purpose": "domestic ecommerce product, rating, review and behavior field design"
+    },
+    {
+      "name": "ChineseNlpCorpus online_shopping_10_cats公开中文网购评论语料",
+      "url": "https://github.com/SophonPlus/ChineseNlpCorpus/tree/master/datasets/online_shopping_10_cats",
+      "purpose": "Chinese review sentiment labels and ecommerce review language patterns"
+    },
+    {
+      "name": "Products-10K JD.com商品图片数据集说明",
+      "url": "https://products-10k.github.io/",
+      "purpose": "domestic product image taxonomy reference; local demo images are generated assets"
+    }
+  ],
+  "outputs": {
+    "products": 24,
+    "sales_daily": 2160,
+    "comments": 543,
+    "video_metrics": 24,
+    "competitors": 72,
+    "orders_daily": 2160,
+    "inventory_daily": 720,
+    "after_sales": 72,
+    "ad_metrics": 540,
+    "traffic_metrics": 2160,
+    "content_metrics": 96
+  },
+  "notes": [
+    "products.csv and comments.csv use domestic ecommerce field structures and curated Chinese ecommerce demo samples for stable local presentation.",
+    "sales_daily.csv, content_metrics.csv, competitors.csv and other business tables contain derived operating metrics for a multi-platform ecommerce decision workflow.",
+    "No restricted platform pages are crawled, and derived fields must not be described as real-time platform data."
+  ]
+}

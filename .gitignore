@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-tmp/
+.tmp/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+*.log
+logs/
+output/
+
+# Raw public datasets are reproducible through scripts/prepare_datasets.py.
+data/raw/
+
+# SQLite databases are generated from data/processed CSV files.
+data/database/*.db
+data/database/*.sqlite
+data/backups/*.db
+data/backups/*.sha256
+data/knowledge/vector_knowledge_base.json

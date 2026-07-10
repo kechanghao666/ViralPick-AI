@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ViralPick AI</title>
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+  </head>
+  <body>
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-visual">
+        <a class="auth-brand" href="#dashboard" aria-label="ViralPick AI">
+          <span class="brand-mark">VP</span>
+          <span>
+            <strong>ViralPick AI</strong>
+            <small>多平台电商经营增长平台</small>
+          </span>
+        </a>
+        <div class="auth-copy">
+          <span>账号安全入口</span>
+          <h1>进入 ViralPick AI</h1>
+          <p>登录或注册后再加载工作台内容；入口页不展示任何经营信息。</p>
+        </div>
+        <div class="auth-signal-grid">
+          <article><span>身份验证</span><strong>账号登录</strong></article>
+          <article><span>新团队</span><strong>快速注册</strong></article>
+          <article><span>会话保护</span><strong>安全进入</strong></article>
+          <article><span>权限边界</span><strong>独立空间</strong></article>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-tabs" role="tablist" aria-label="账号入口">
+          <button class="is-active" type="button" id="loginTab" role="tab" aria-selected="true" aria-controls="loginForm" data-auth-mode="login">登录</button>
+          <button type="button" id="registerTab" role="tab" aria-selected="false" aria-controls="registerForm" data-auth-mode="register">注册</button>
+        </div>
+        <form class="auth-form is-active" id="loginForm" role="tabpanel" aria-labelledby="loginTab">
+          <label>
+            <span>邮箱</span>
+            <input id="loginEmail" type="email" placeholder="name@example.com" autocomplete="email" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input id="loginPassword" type="password" placeholder="请输入密码" autocomplete="current-password" required />
+          </label>
+          <button class="primary-button wide" type="submit">进入系统</button>
+        </form>
+        <form class="auth-form" id="registerForm" role="tabpanel" aria-labelledby="registerTab">
+          <label>
+            <span>店铺名称</span>
+            <input id="registerWorkspace" type="text" placeholder="请输入店铺名称" autocomplete="organization" required />
+          </label>
+          <label>
+            <span>姓名</span>
+            <input id="registerName" type="text" placeholder="请输入姓名" autocomplete="name" required />
+          </label>
+          <label>
+            <span>邮箱</span>
+            <input id="registerEmail" type="email" placeholder="name@example.com" autocomplete="email" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input id="registerPassword" type="password" placeholder="至少 8 位" autocomplete="new-password" required />
+          </label>
+          <label>
+            <span>确认密码</span>
+            <input id="registerPasswordConfirm" type="password" placeholder="再次输入密码" autocomplete="new-password" required />
+          </label>
+          <div class="password-rules" id="registerPasswordRules">
+            <span>至少 8 位</span><span>建议包含字母和数字</span><span>创建独立经营空间</span>
+          </div>
+          <button class="primary-button wide" type="submit">创建经营空间</button>
+        </form>
+        <div class="auth-message" id="authMessage" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <div class="app-shell" id="appShell" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="#dashboard" aria-label="ViralPick AI">
+          <span class="brand-mark">VP</span>
+          <span>
+            <strong>ViralPick AI</strong>
+            <small>多平台电商智能经营与增长决策平台</small>
+          </span>
+        </a>
+
+        <nav class="nav-list" aria-label="主导航">
+          <a class="nav-link is-active" href="#dashboard" data-page="dashboard"><span>01</span>经营驾驶舱</a>
+          <a class="nav-link" href="#data" data-page="data"><span>02</span>数据接入中心</a>
+          <a class="nav-link" href="#products" data-page="products"><span>03</span>商品增长中心</a>
+          <a class="nav-link" href="#reputation" data-page="reputation"><span>04</span>用户口碑中心</a>
+          <a class="nav-link" href="#marketing" data-page="marketing"><span>05</span>投放内容中心</a>
+          <a class="nav-link" href="#forecast" data-page="forecast"><span>06</span>趋势预测中心</a>
+          <a class="nav-link" href="#reports" data-page="reports"><span>07</span>经营报告中心</a>
+        </nav>
+
+        <div class="side-signal">
+          <span>今日重点</span>
+          <strong id="sideAction">读取经营动作</strong>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">经营驾驶舱</h1>
+            <p class="page-context" id="pageContext">聚合经营结果、风险信号与今日动作</p>
+          </div>
+          <div class="topbar-actions">
+            <label class="search-box" for="globalSearch">
+              <span aria-hidden="true"></span>
+              <input id="globalSearch" type="search" placeholder="搜索商品名称" autocomplete="off" aria-label="搜索商品名称" />
+              <kbd>Ctrl K</kbd>
+            </label>
+            <div class="sync-status" aria-live="polite">
+              <span aria-hidden="true"></span>
+              <div>
+                <strong id="syncStatusText">数据待加载</strong>
+                <small id="syncStatusTime">正在准备经营视图</small>
+              </div>
+            </div>
+            <button class="ghost-button" type="button" id="refreshButton" aria-label="刷新全部经营数据">刷新数据</button>
+            <div class="user-chip" id="userChip">
+              <span id="currentUserName">经营账号</span>
+              <button type="button" id="logoutButton">退出</button>
+            </div>
+          </div>
+        </header>
+
+        <section class="page is-active" id="page-dashboard" data-page-view="dashboard">
+          <section class="hero-grid">
+            <div class="hero-panel">
+              <h2>今日经营总览</h2>
+              <p class="hero-subtitle">用一屏看清收入结果、转化效率、库存压力、口碑风险和当天优先动作。</p>
+              <div class="hero-metrics" id="dashboardHeroMetrics"></div>
+              <div class="decision-rail" id="dashboardDecisionRail"></div>
+            </div>
+            <div class="hero-radar">
+              <div>
+                <span>经营信号</span>
+                <strong id="dashboardSignal">计算中</strong>
+              </div>
+              <div class="orbital-score" id="dashboardScore">0</div>
+            </div>
+          </section>
+
+          <section class="screen-grid dashboard-grid">
+            <div class="panel span-8 dashboard-trend-panel">
+              <header class="panel-header">
+                <span>近 30 日销售趋势</span>
+                <em id="trendHint">销售节奏</em>
+              </header>
+              <div class="chart chart-large" id="salesTrendChart"></div>
+            </div>
+            <div class="panel span-4 dashboard-actions-panel">
+              <header class="panel-header"><span>今日动作</span></header>
+              <div class="action-list" id="todayActions"></div>
+            </div>
+            <div class="panel span-5 dashboard-opportunity-panel">
+              <header class="panel-header"><span>增长机会</span></header>
+              <div class="rank-list" id="opportunityList"></div>
+            </div>
+            <div class="panel span-4 dashboard-category-panel">
+              <header class="panel-header"><span>类目贡献</span></header>
+              <div class="chart" id="categoryChart"></div>
+            </div>
+            <div class="panel span-3 dashboard-risk-panel">
+              <header class="panel-header"><span>风险预警</span></header>
+              <div class="risk-list" id="riskList"></div>
+            </div>
+            <div class="panel span-6 dashboard-detail-panel">
+              <header class="panel-header"><span>经营明细</span><em>类目与成交结构</em></header>
+              <div class="dense-table" id="dashboardDetailTable"></div>
+            </div>
+            <div class="panel span-3 dashboard-content-panel">
+              <header class="panel-header"><span>内容表现</span><em>高互动素材</em></header>
+              <div class="compact-list" id="dashboardContentList"></div>
+            </div>
+            <div class="panel span-3 dashboard-inventory-panel">
+              <header class="panel-header"><span>库存售后</span><em>关注事项</em></header>
+              <div class="compact-list" id="dashboardInventoryList"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-data" data-page-view="data" hidden>
+          <section class="page-hero compact-hero">
+            <div>
+              <h2>数据接入</h2>
+              <p class="hero-subtitle">上传各平台导出的经营文件，先完成字段匹配和质量校验，再写入系统。</p>
+            </div>
+            <div class="hero-mini" id="importSchemaCount">支持多类经营数据</div>
+          </section>
+
+          <section class="import-flow">
+            <div class="flow-step is-active">
+              <span>1</span>
+              <strong>上传文件</strong>
+            </div>
+            <div class="flow-step">
+              <span>2</span>
+              <strong>字段映射</strong>
+            </div>
+            <div class="flow-step">
+              <span>3</span>
+              <strong>确认导入</strong>
+            </div>
+          </section>
+
+          <section class="screen-grid">
+            <div class="panel span-4 data-upload-panel">
+              <header class="panel-header"><span>文件上传</span></header>
+              <form class="import-form" id="importPreviewForm">
+                <label>
+                  <span>数据类型</span>
+                  <select id="importDatasetType"></select>
+                </label>
+                <label>
+                  <span>导入文件</span>
+                  <input id="importFile" type="file" accept=".csv,.xlsx,.xls" />
+                </label>
+                <button class="primary-button" type="submit">识别字段</button>
+              </form>
+              <div class="dataset-grid" id="datasetGrid"></div>
+            </div>
+            <div class="panel span-5 data-mapping-panel">
+              <header class="panel-header"><span>字段映射</span><em id="mappingMeta">等待文件</em></header>
+              <div id="mappingTable" class="mapping-table"></div>
+            </div>
+            <div class="panel span-3 data-quality-panel">
+              <header class="panel-header"><span>导入确认</span></header>
+              <label class="mode-select">
+                <span>导入策略</span>
+                <select id="importMode">
+                  <option value="append">追加导入</option>
+                  <option value="date_merge">按日期合并</option>
+                  <option value="replace">覆盖导入</option>
+                </select>
+              </label>
+              <button class="primary-button wide" type="button" id="commitImportButton" disabled>确认导入</button>
+              <div id="importQuality" class="quality-box"></div>
+            </div>
+            <div class="panel span-12 data-api-panel">
+              <header class="panel-header"><span>电商平台 API 一键接入</span><em>授权后自动同步商品、订单、评论、投放和库存</em></header>
+              <div class="api-connect-head" id="platformApiSummary"></div>
+              <div class="platform-api-grid" id="platformApiConnectList"></div>
+              <div class="api-connect-message" id="platformApiMessage" aria-live="polite"></div>
+            </div>
+            <div class="panel span-12">
+              <header class="panel-header"><span>接入数据总览</span></header>
+              <div class="table-wrap preview-wrap"><table id="previewTable"></table></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-products" data-page-view="products" hidden>
+          <section class="page-hero product-hero">
+            <div>
+              <h2>商品增长</h2>
+              <p class="hero-subtitle">按销售、评分、库存和口碑识别主推、观察和风险商品。</p>
+            </div>
+            <div class="filters">
+              <input id="productKeyword" type="search" placeholder="搜索商品" />
+              <select id="productCategory"><option value="">全部类目</option></select>
+              <select id="productSort">
+                <option value="hot_score">按潜力</option>
+                <option value="gmv">按销售额</option>
+                <option value="sales">按销量</option>
+                <option value="growth">按增长</option>
+              </select>
+            </div>
+          </section>
+          <section class="summary-strip" id="productSummaryStrip"></section>
+          <section class="product-layout">
+            <div class="product-shelf" id="productShelf"></div>
+            <aside class="product-insight" id="productInsight"></aside>
+          </section>
+          <section class="screen-grid">
+            <div class="panel span-5 product-score-panel">
+              <header class="panel-header"><span>爆品评分</span></header>
+              <div class="chart" id="scoreChart"></div>
+            </div>
+            <div class="panel span-4 product-price-panel">
+              <header class="panel-header"><span>价格带表现</span></header>
+              <div class="chart" id="priceBandChart"></div>
+            </div>
+            <div class="panel span-3 product-rank-panel">
+              <header class="panel-header"><span>商品排行</span></header>
+              <div class="rank-list" id="productRankList"></div>
+            </div>
+            <div class="panel span-6 product-category-panel">
+              <header class="panel-header"><span>类目结构</span><em>销售额与销量占比</em></header>
+              <div class="dense-table" id="categoryShareTable"></div>
+            </div>
+            <div class="panel span-6 product-growth-panel">
+              <header class="panel-header"><span>增长动作</span><em>按商品优先级</em></header>
+              <div class="compact-list" id="growthActionList"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-reputation" data-page-view="reputation" hidden>
+          <section class="page-hero compact-hero">
+            <div>
+              <h2>口碑诊断</h2>
+              <p class="hero-subtitle">把评论情绪、差评归因、需求关键词和售后问题转成商品优化动作。</p>
+            </div>
+            <select id="reputationProductSelect" class="product-select"></select>
+          </section>
+          <section class="summary-strip" id="reputationSummary"></section>
+          <section class="screen-grid">
+            <div class="panel span-4 reputation-sentiment-panel">
+              <header class="panel-header"><span>情绪分布</span></header>
+              <div class="chart" id="sentimentChart"></div>
+            </div>
+            <div class="panel span-4 reputation-positive-panel">
+              <header class="panel-header"><span>好评关键词</span></header>
+              <div class="keyword-cloud" id="positiveKeywords"></div>
+            </div>
+            <div class="panel span-4 reputation-negative-panel">
+              <header class="panel-header"><span>差评归因</span></header>
+              <div class="keyword-cloud danger" id="negativeKeywords"></div>
+            </div>
+            <div class="panel span-7 reputation-pain-panel">
+              <header class="panel-header"><span>用户痛点</span></header>
+              <div class="pain-grid" id="painPoints"></div>
+            </div>
+            <div class="panel span-5 reputation-comment-panel">
+              <header class="panel-header"><span>评论记录</span></header>
+              <div class="comment-feed" id="commentFeed"></div>
+            </div>
+            <div class="panel span-5 reputation-category-panel">
+              <header class="panel-header"><span>类目口碑</span><em>好评率排行</em></header>
+              <div class="compact-list" id="categorySentimentList"></div>
+            </div>
+            <div class="panel span-7 reputation-demand-panel">
+              <header class="panel-header"><span>需求摘要</span><em>卖点与待修正项</em></header>
+              <div class="insight-copy" id="demandSummary"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-marketing" data-page-view="marketing" hidden>
+          <section class="page-hero compact-hero">
+            <div>
+              <h2>投放与内容</h2>
+              <p class="hero-subtitle">同时看花费、曝光、点击、成交、ROI 和素材方向，快速判断预算节奏。</p>
+            </div>
+          </section>
+          <section class="screen-grid">
+            <div class="panel span-3 metric-strip marketing-metrics-panel" id="marketingMetrics"></div>
+            <div class="panel span-5 marketing-funnel-panel">
+              <header class="panel-header"><span>投放漏斗</span></header>
+              <div class="chart" id="marketingFunnelChart"></div>
+            </div>
+            <div class="panel span-4 marketing-content-panel">
+              <header class="panel-header"><span>内容素材表现</span></header>
+              <div class="content-list" id="contentList"></div>
+            </div>
+            <div class="panel span-12 marketing-suggestion-panel">
+              <header class="panel-header"><span>优化建议</span></header>
+              <div class="suggestion-line" id="marketingSuggestions"></div>
+            </div>
+            <div class="panel span-6 marketing-rank-panel">
+              <header class="panel-header"><span>素材排行</span><em>互动与效果分</em></header>
+              <div class="dense-table" id="contentRankTable"></div>
+            </div>
+            <div class="panel span-6 marketing-action-panel">
+              <header class="panel-header"><span>投放动作</span><em>本周执行</em></header>
+              <div class="compact-list" id="marketingActionList"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-forecast" data-page-view="forecast" hidden>
+          <section class="page-hero compact-hero">
+            <div>
+              <h2>趋势与库存</h2>
+              <p class="hero-subtitle">结合预测曲线、库存水位和售后信号，安排补货、控货和清仓节奏。</p>
+            </div>
+            <select id="forecastProductSelect" class="product-select"></select>
+          </section>
+          <section class="summary-strip" id="forecastSummaryStrip"></section>
+          <section class="screen-grid">
+            <div class="panel span-8 forecast-chart-panel">
+              <header class="panel-header"><span>未来 7 天预测</span></header>
+              <div class="chart chart-large" id="forecastChart"></div>
+            </div>
+            <div class="panel span-4 forecast-inventory-panel">
+              <header class="panel-header"><span>库存售后信号</span></header>
+              <div class="inventory-box" id="inventoryBox"></div>
+            </div>
+            <div class="panel span-12">
+              <header class="panel-header"><span>补货与滞销关注</span></header>
+              <div class="rank-list horizontal" id="replenishmentList"></div>
+            </div>
+            <div class="panel span-7 forecast-detail-panel">
+              <header class="panel-header"><span>预测明细</span><em>未来 7 天</em></header>
+              <div class="dense-table" id="forecastTable"></div>
+            </div>
+            <div class="panel span-5 forecast-after-sales-panel">
+              <header class="panel-header"><span>售后原因</span><em>退款退货关注</em></header>
+              <div class="compact-list" id="afterSalesList"></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page" id="page-reports" data-page-view="reports" hidden>
+          <section class="page-hero compact-hero">
+            <div>
+              <h2>经营汇报</h2>
+              <p class="hero-subtitle">沉淀经营结论、数据证据和执行安排，页面预览与导出文档保持一致。</p>
+            </div>
+            <button class="primary-button" type="button" id="generateReportButton">生成图文汇报</button>
+          </section>
+          <section class="summary-strip report-summary" id="reportBrief"></section>
+          <section class="report-layout">
+            <article class="panel report-panel">
+              <header class="panel-header">
+                <span>综合汇报</span>
+                <div>
+                  <button class="ghost-button mini" type="button" id="copyReportButton">复制结论</button>
+                  <button class="ghost-button mini" type="button" id="exportReportButton">导出经营报告</button>
+                </div>
+              </header>
+              <div id="reportOutput" class="report-output"></div>
+            </article>
+            <aside class="report-side">
+              <section class="panel">
+                <header class="panel-header"><span>汇报摘要</span><em>经营复盘</em></header>
+                <div class="dense-table" id="reportFocusTable"></div>
+              </section>
+              <section class="panel">
+                <header class="panel-header"><span>执行安排</span><em>今日优先</em></header>
+                <div class="compact-list" id="reportActionList"></div>
+              </section>
+            </aside>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <section class="assistant-widget" id="assistantWidget" hidden>
+      <button class="assistant-toggle" type="button" id="aiAssistantToggle" aria-expanded="false" aria-controls="assistantPanel">
+        <span class="assistant-avatar" aria-hidden="true"><i></i><b></b></span>
+        <strong>数智经营助手</strong>
+      </button>
+      <div class="assistant-panel" id="assistantPanel" role="region" aria-label="数智经营助手" hidden>
+        <header>
+          <div class="assistant-title">
+            <span class="assistant-avatar small" aria-hidden="true"><i></i><b></b></span>
+            <div>
+              <strong>数智经营助手</strong>
+              <small>经营资料库 · 数据分析 · 执行建议</small>
+            </div>
+          </div>
+          <button type="button" id="aiAssistantClose" aria-label="关闭经营助手">×</button>
+        </header>
+        <div class="assistant-messages" id="aiAssistantMessages" role="log" aria-live="polite" aria-relevant="additions text"></div>
+        <form class="assistant-form" id="aiAssistantForm">
+          <label class="sr-only" for="aiAssistantInput">向经营助手提问</label>
+          <input id="aiAssistantInput" type="text" placeholder="问我：今天应该优先处理什么？" autocomplete="off" />
+          <button type="submit">发送</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="toast-stack" id="toastStack" role="status" aria-live="polite" aria-atomic="false"></div>
+
+    <script src="./assets/vendor/echarts.min.js"></script>
+    <script type="module" src="./assets/js/app.js"></script>
+  </body>
+</html>

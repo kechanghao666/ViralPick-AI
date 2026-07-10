@@ -1,0 +1,19 @@
+services:
+  viralpick:
+    build: .
+    image: viralpick-ai:latest
+    container_name: viralpick-ai
+    ports:
+      - "5000:5000"
+    environment:
+      VIRALPICK_ENV: production
+      VIRALPICK_API_HOST: 0.0.0.0
+      VIRALPICK_API_PORT: 5000
+      VIRALPICK_SERVE_FRONTEND: "1"
+      VIRALPICK_CORS_ORIGINS: "*"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:5000/api/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
