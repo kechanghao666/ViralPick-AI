@@ -699,7 +699,7 @@ def load_metadata(connection: sqlite3.Connection, counts: dict[str, int]) -> Non
 def load_identity_seed(connection: sqlite3.Connection) -> None:
     admin_email = os.getenv("VIRALPICK_DEFAULT_ADMIN_EMAIL", "demo@viralpick.ai")
     admin_password = os.getenv("VIRALPICK_DEFAULT_ADMIN_PASSWORD", "ViralPick@2026")
-    created_at = pd.Timestamp.utcnow().isoformat()
+    created_at = pd.Timestamp.now(tz="UTC").isoformat()
     connection.execute(
         """
         INSERT INTO workspaces (workspace_id, workspace_name, plan, status, created_at)

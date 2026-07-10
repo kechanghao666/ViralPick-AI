@@ -2,15 +2,25 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .pytest-tmp/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 .tmp/
 .venv/
 venv/
+build/
+dist/
+*.egg-info/
 .env
 .env.*
 !.env.example
 *.log
 logs/
 output/
+.DS_Store
+Thumbs.db
 
 # Raw public datasets are reproducible through scripts/prepare_datasets.py.
 data/raw/

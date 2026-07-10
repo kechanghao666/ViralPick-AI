@@ -192,6 +192,21 @@ python scripts\migrate_database.py
 python scripts\build_knowledge_base.py
 ```
 
+## 可复现与提交边界
+
+GitHub 仓库只保存复现系统所需的源码、测试、文档、前端静态资源、商品图片和 `data/processed/` 演示数据。全新克隆后执行“创建虚拟环境 → 安装依赖 → 初始化数据库 → 数据库迁移 → 启动服务”，即可得到与本地相同的功能结构和演示数据。
+
+以下内容由本地运行自动生成，不进入 Git：
+
+- `.venv/`：本机 Python 虚拟环境。
+- `data/database/`：由 `data/processed/` 初始化得到的 SQLite 数据库。
+- `data/backups/`：运行时数据库备份。
+- `data/knowledge/vector_knowledge_base.json`：首次知识检索时生成的本地索引。
+- `logs/`、`output/`、`.tmp/`：日志、报告/视觉审计输出和临时文件。
+- `__pycache__/`、`.pytest_cache/`、覆盖率文件：编译和测试缓存。
+
+因此，提交项不会携带本机路径、虚拟环境、运行日志、测试截图、数据库状态或外部 API 凭据。需要保留业务数据时，应通过合规的数据导出/导入或独立备份流程处理，而不是直接提交 SQLite 文件。
+
 ## Docker 启动
 
 ```powershell
