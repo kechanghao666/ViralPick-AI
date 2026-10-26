@@ -28,6 +28,11 @@ def test_optional_frontend_serving(monkeypatch, initialized_database):
         assert forbidden not in auth_html
     assert 'id="loginEmail" type="email" placeholder="name@example.com"' in html
     assert 'id="loginPassword" type="password" placeholder=' in html
+    assert 'id="inviteForm"' in html
+    assert 'id="workspaceMenuButton"' in html
+    assert 'id="workspaceDrawer"' in html
+    assert 'data-workspace-tab="team"' in html
+    assert 'id="workspaceBrandAccessNote"' in html
     assert 'class="panel span-4 dashboard-actions-panel"' in html
     assert "data-upload-panel" in html
     assert "marketing-metrics-panel" in html

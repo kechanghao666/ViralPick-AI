@@ -49,6 +49,50 @@ const state = {
   assistantMessages: [],
   currentUser: null,
   authMode: "login",
+  invitationToken: "",
+  invitation: null,
+  brandSettings: null,
+  workspaceOpen: false,
+  workspaceTab: "overview",
+  workspaceLoading: false,
+  workspaceConsole: {
+    permissions: null,
+    team: null,
+    invitations: null,
+    audit: null,
+    ops: null,
+    monitoring: null,
+    alertStatus: null,
+    backups: null,
+  },
+};
+
+const roleLabels = {
+  owner: "所有者",
+  admin: "管理员",
+  analyst: "分析师",
+  viewer: "只读成员",
+};
+
+const planLabels = {
+  "business-trial": "商业试用版",
+  business: "商业版",
+  enterprise: "企业版",
+};
+
+const opsMetricNotes = {
+  database_size: "当前 SQLite 数据文件",
+  product_count: "已纳入分析的商品",
+  sales_daily_count: "日级销售事实记录",
+  backup_count: "当前保留的可恢复快照",
+  failed_imports: "需要人工处理的导入任务",
+  latest_audit_at: "最近一次系统操作",
+};
+
+const alertSeverityLabels = {
+  critical: "故障",
+  warn: "提醒",
+  info: "正常",
 };
 
 const charts = new Map();
@@ -56,6 +100,7 @@ let productFilterRequestSeq = 0;
 let searchDebounceTimer = 0;
 let productSearchDebounceTimer = 0;
 let refreshInFlight = false;
+let workspaceReturnFocus = null;
 
 function money(value) {
   const number = Number(value || 0);
@@ -92,6 +137,29 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function hasPermission(permission) {
+  return (state.currentUser?.permissions || []).includes(permission);
+}
+
+function formatDateTime(value) {
+  if (!value) return "尚无记录";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function initials(value) {
+  const text = String(value || "VP").trim();
+  if (!text) return "VP";
+  const ascii = text.split(/\s+/).map((part) => part[0]).join("").slice(0, 2);
+  return (/^[\x00-\x7F]+$/.test(text) ? ascii : text.slice(0, 2)).toUpperCase();
 }
 
 function showToast(title, message = "", tone = "info", timeout = 3600) {
@@ -210,6 +278,7 @@ async function loadInitial({ announce = false } = {}) {
     ["inventory", api.inventorySummary()],
     ["knowledgeStatus", api.knowledgeStatus()],
     ["platformConnections", api.platformConnections()],
+    ["brandSettings", api.brandSettings()],
   ];
   try {
     const results = await Promise.allSettled(requests.map(([, request]) => request));
@@ -234,6 +303,10 @@ async function loadInitial({ announce = false } = {}) {
     if (loaded.inventory) state.inventory = loaded.inventory;
     if (loaded.knowledgeStatus) state.knowledgeStatus = loaded.knowledgeStatus;
     if (loaded.platformConnections) state.platformConnections = loaded.platformConnections;
+    if (loaded.brandSettings) {
+      state.brandSettings = loaded.brandSettings;
+      applyBrandSettings(loaded.brandSettings);
+    }
     state.selectedProductId = state.selectedProductId || state.products[0]?.product_id || "";
     const scopedFailures = await loadProductScoped();
     renderAll();
@@ -255,6 +328,12 @@ async function loadInitial({ announce = false } = {}) {
 
 async function initializeApp() {
   setAuthMode("login");
+  const inviteToken = getInvitationToken();
+  if (inviteToken) {
+    showAuthScreen();
+    await loadInvitation(inviteToken);
+    return;
+  }
   const token = window.localStorage.getItem(api.tokenKey);
   if (!token) {
     showAuthScreen();
@@ -271,6 +350,30 @@ async function initializeApp() {
   showAppScreen();
   routeTo(currentRoute());
   await loadInitial();
+}
+
+function getInvitationToken() {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  return String(params.get("invite") || "").trim();
+}
+
+async function loadInvitation(inviteToken) {
+  state.invitationToken = inviteToken;
+  setAuthMessage("正在验证团队邀请…");
+  try {
+    state.invitation = await api.invitation(inviteToken);
+    const invitation = state.invitation || {};
+    $("inviteDisplayName").value = invitation.display_name || "";
+    $("inviteSummaryText").textContent = `你将以${roleLabels[invitation.role] || "团队成员"}身份加入「${invitation.workspace?.workspace_name || "经营空间"}」，邀请邮箱为 ${invitation.email || "未提供"}。`;
+    setAuthMode("invite");
+    setAuthMessage("邀请有效，请设置密码后加入。", "is-success");
+  } catch (_error) {
+    state.invitationToken = "";
+    state.invitation = null;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    setAuthMode("login");
+    setAuthMessage("邀请链接无效、已过期或已被使用，请联系管理员重新发送。", "is-error");
+  }
 }
 
 async function loadProductScoped() {
@@ -300,7 +403,7 @@ function renderAll() {
 }
 
 function setAuthMode(mode) {
-  state.authMode = mode === "register" ? "register" : "login";
+  state.authMode = ["login", "register", "invite"].includes(mode) ? mode : "login";
   document.querySelectorAll("[data-auth-mode]").forEach((button) => {
     const active = button.dataset.authMode === state.authMode;
     button.classList.toggle("is-active", active);
@@ -308,10 +411,15 @@ function setAuthMode(mode) {
     button.tabIndex = active ? 0 : -1;
   });
   const loginActive = state.authMode === "login";
+  const registerActive = state.authMode === "register";
+  const inviteActive = state.authMode === "invite";
+  $("loginTab")?.closest(".auth-tabs")?.toggleAttribute("hidden", inviteActive);
   $("loginForm")?.classList.toggle("is-active", loginActive);
-  $("registerForm")?.classList.toggle("is-active", !loginActive);
+  $("registerForm")?.classList.toggle("is-active", registerActive);
+  $("inviteForm")?.classList.toggle("is-active", inviteActive);
   if ($("loginForm")) $("loginForm").hidden = !loginActive;
-  if ($("registerForm")) $("registerForm").hidden = loginActive;
+  if ($("registerForm")) $("registerForm").hidden = !registerActive;
+  if ($("inviteForm")) $("inviteForm").hidden = !inviteActive;
   setAuthMessage("");
 }
 
@@ -340,6 +448,259 @@ function renderUserChip() {
   const workspaceName = user.workspace_name === "ViralPick Demo Workspace" ? "默认经营空间" : user.workspace_name;
   const label = workspaceName || user.display_name || "经营账号";
   $("currentUserName").textContent = label;
+  $("currentUserRole").textContent = `${roleLabels[user.role] || "工作空间"} · ${planLabels[user.plan] || user.plan || "标准版"}`;
+  $("currentUserInitial").textContent = initials(user.display_name || label);
+}
+
+function applyBrandSettings(settings = {}) {
+  const name = settings.brand_name || "ViralPick AI";
+  document.querySelectorAll(".brand strong, .auth-brand strong").forEach((node) => {
+    node.textContent = name;
+  });
+  if (settings.primary_color) document.documentElement.style.setProperty("--cyan", settings.primary_color);
+  if (settings.accent_color) document.documentElement.style.setProperty("--amber", settings.accent_color);
+  document.title = `${name} · 经营工作台`;
+}
+
+function setWorkspaceOpen(open) {
+  state.workspaceOpen = Boolean(open);
+  $("workspaceDrawer").hidden = !state.workspaceOpen;
+  $("workspaceOverlay").hidden = !state.workspaceOpen;
+  $("workspaceMenuButton").setAttribute("aria-expanded", String(state.workspaceOpen));
+  document.body.classList.toggle("workspace-is-open", state.workspaceOpen);
+  if (!state.workspaceOpen && workspaceReturnFocus) {
+    workspaceReturnFocus.focus?.();
+    workspaceReturnFocus = null;
+  }
+}
+
+async function openWorkspaceConsole(tab = "overview") {
+  workspaceReturnFocus = document.activeElement;
+  setWorkspaceOpen(true);
+  setWorkspaceTab(tab);
+  $("workspaceDrawer").focus();
+  await loadWorkspaceConsole();
+}
+
+function closeWorkspaceConsole() {
+  setWorkspaceOpen(false);
+}
+
+function setWorkspaceTab(tab) {
+  const button = document.querySelector(`[data-workspace-tab="${tab}"]`);
+  const nextTab = button && !button.hidden ? tab : "overview";
+  state.workspaceTab = nextTab;
+  document.querySelectorAll("[data-workspace-tab]").forEach((item) => {
+    const active = item.dataset.workspaceTab === nextTab;
+    item.classList.toggle("is-active", active);
+    item.setAttribute("aria-selected", String(active));
+    item.tabIndex = active ? 0 : -1;
+  });
+  document.querySelectorAll("[data-workspace-panel]").forEach((panel) => {
+    const active = panel.dataset.workspacePanel === nextTab;
+    panel.hidden = !active;
+    panel.classList.toggle("is-active", active);
+  });
+}
+
+async function loadWorkspaceConsole({ announce = false } = {}) {
+  if (state.workspaceLoading || !state.currentUser) return;
+  state.workspaceLoading = true;
+  $("workspaceConsoleStatus").textContent = "正在同步工作空间信息…";
+  $("workspaceDrawer").setAttribute("aria-busy", "true");
+  const requests = [
+    ["permissions", api.permissions()],
+    ["brandSettings", hasPermission("brand.view") ? api.brandSettings() : Promise.resolve(null)],
+    ["team", hasPermission("team.view") ? api.teamMembers() : Promise.resolve(null)],
+    ["invitations", hasPermission("team.manage") ? api.teamInvitations() : Promise.resolve(null)],
+    ["audit", hasPermission("audit.view") ? api.auditLogs({ page: 1, page_size: 20 }) : Promise.resolve(null)],
+    ["ops", hasPermission("ops.view") ? api.opsStatus() : Promise.resolve(null)],
+    ["monitoring", hasPermission("ops.view") ? api.opsMonitoring() : Promise.resolve(null)],
+    ["alertStatus", hasPermission("ops.view") ? api.opsAlertStatus() : Promise.resolve(null)],
+    ["backups", hasPermission("ops.view") ? api.opsBackups() : Promise.resolve(null)],
+  ];
+  try {
+    const results = await Promise.allSettled(requests.map(([, request]) => request));
+    let failures = 0;
+    results.forEach((result, index) => {
+      const key = requests[index][0];
+      if (result.status === "fulfilled") {
+        if (key === "brandSettings") {
+          if (result.value) {
+            state.brandSettings = result.value;
+            applyBrandSettings(result.value);
+          }
+        } else {
+          state.workspaceConsole[key] = result.value;
+        }
+      } else {
+        failures += 1;
+      }
+    });
+    renderWorkspaceConsole();
+    $("workspaceConsoleStatus").textContent = failures ? `${failures} 项管理信息暂不可用` : "工作空间信息已同步";
+    if (announce) showToast("工作空间已刷新", failures ? "部分信息暂不可用。" : "团队、审计和运行状态已更新。", failures ? "warning" : "success");
+  } finally {
+    state.workspaceLoading = false;
+    $("workspaceDrawer").setAttribute("aria-busy", "false");
+  }
+}
+
+function renderWorkspaceConsole() {
+  const permissionMap = {
+    team: hasPermission("team.view"),
+    audit: hasPermission("audit.view"),
+    ops: hasPermission("ops.view"),
+    brand: hasPermission("brand.view"),
+  };
+  Object.entries(permissionMap).forEach(([tab, visible]) => {
+    const button = document.querySelector(`[data-workspace-tab="${tab}"]`);
+    if (button) button.hidden = !visible;
+  });
+  if (document.querySelector(`[data-workspace-tab="${state.workspaceTab}"]`)?.hidden) state.workspaceTab = "overview";
+  setWorkspaceTab(state.workspaceTab);
+  renderWorkspaceOverview();
+  renderWorkspaceTeam();
+  renderWorkspaceAudit();
+  renderWorkspaceOps();
+  renderWorkspaceBrand();
+}
+
+function renderWorkspaceOverview() {
+  const user = state.currentUser || {};
+  const permissions = state.workspaceConsole.permissions || {};
+  const team = state.workspaceConsole.team || {};
+  const monitoring = state.workspaceConsole.monitoring || {};
+  const backups = state.workspaceConsole.backups || {};
+  $("workspaceIdentity").innerHTML = `
+    <div class="workspace-identity-avatar">${escapeHtml(initials(user.display_name || user.workspace_name))}</div>
+    <div><span>${escapeHtml(user.email || "")}</span><strong>${escapeHtml(user.workspace_name || "经营空间")}</strong><p>${escapeHtml(user.display_name || "成员")} · ${escapeHtml(roleLabels[user.role] || user.role || "成员")}</p></div>
+    <span class="workspace-plan-badge">${escapeHtml(planLabels[user.plan] || user.plan || "标准版")}</span>
+  `;
+  const health = monitoring.health_state || "unknown";
+  const healthLabels = { healthy: "运行正常", warn: "需要关注", critical: "存在故障", unknown: "待检查" };
+  const canViewTeam = hasPermission("team.view");
+  const canViewOps = hasPermission("ops.view");
+  const stats = [
+    ["团队成员", canViewTeam ? `${team.items?.length || 0} 位` : "权限受限", canViewTeam ? "协作账号" : "仅授权角色可查看"],
+    ["权限能力", `${permissions.capabilities?.length || user.permissions?.length || 0} 项`, roleLabels[user.role] || "当前角色"],
+    ["运行健康", canViewOps ? (healthLabels[health] || healthLabels.unknown) : "权限受限", canViewOps ? (monitoring.summary?.warn ? `${monitoring.summary.warn} 项提醒` : "无阻断告警") : "仅管理员可查看"],
+    ["数据库备份", canViewOps ? `${backups.items?.length || 0} 份` : "权限受限", canViewOps ? (backups.items?.[0]?.created_at ? formatDateTime(backups.items[0].created_at) : "建议创建首份备份") : "仅管理员可查看"],
+  ];
+  $("workspaceStats").innerHTML = stats.map(([label, value, note]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
+  const capabilities = permissions.capabilities || [];
+  $("workspaceCapabilities").innerHTML = capabilities.length
+    ? capabilities.map((item) => `<span>${escapeHtml(item)}</span>`).join("")
+    : `<div class="workspace-empty">当前角色没有额外管理权限。</div>`;
+}
+
+function renderWorkspaceTeam() {
+  const team = state.workspaceConsole.team || {};
+  const invitations = state.workspaceConsole.invitations || {};
+  const members = team.items || [];
+  $("workspaceTeamCount").textContent = `${members.length} 位成员`;
+  $("workspaceInviteForm").hidden = !hasPermission("team.manage");
+  $("workspaceTeamList").innerHTML = members.length
+    ? members.map((member) => `
+      <article class="workspace-list-item">
+        <span class="workspace-row-avatar">${escapeHtml(initials(member.display_name || member.email))}</span>
+        <div><strong>${escapeHtml(member.display_name || member.email)}</strong><span>${escapeHtml(member.email || "")}</span></div>
+        <div class="workspace-row-meta"><span>${escapeHtml(member.role_label || roleLabels[member.role] || member.role)}</span><small>${member.last_login_at ? `最近登录 ${escapeHtml(formatDateTime(member.last_login_at))}` : "尚未登录"}</small></div>
+        <span class="status-dot is-${member.status === "active" ? "active" : "muted"}">${member.status === "active" ? "正常" : "已停用"}</span>
+      </article>`).join("")
+    : `<div class="workspace-empty">暂未读取到团队成员。</div>`;
+  const pending = (invitations.items || []).filter((item) => item.status === "pending");
+  $("workspaceInvitationList").innerHTML = pending.length
+    ? pending.map((item) => `
+      <article class="workspace-list-item">
+        <span class="workspace-row-avatar is-invite">+</span>
+        <div><strong>${escapeHtml(item.display_name || item.email)}</strong><span>${escapeHtml(item.email || "")}</span></div>
+        <div class="workspace-row-meta"><span>${escapeHtml(item.role_label || roleLabels[item.role] || item.role)}</span><small>${escapeHtml(formatDateTime(item.expires_at))} 到期</small></div>
+        <button class="text-button is-danger" type="button" data-revoke-invitation="${escapeHtml(item.invitation_id)}">撤销</button>
+      </article>`).join("")
+    : `<div class="workspace-empty">当前没有待接受邀请。</div>`;
+}
+
+function renderWorkspaceAudit() {
+  const audit = state.workspaceConsole.audit || {};
+  const items = audit.items || [];
+  $("workspaceAuditCount").textContent = `${audit.pagination?.total || items.length} 条记录`;
+  const summary = audit.summary || {};
+  $("workspaceAuditSummary").innerHTML = `
+    <article><span>行为记录</span><strong>${number(summary.total || 0)}</strong></article>
+    <article><span>参与成员</span><strong>${number(summary.actor_count || 0)}</strong></article>
+    <article><span>最近活动</span><strong>${escapeHtml(formatDateTime(summary.latest_at))}</strong></article>
+  `;
+  $("workspaceAuditList").innerHTML = items.length
+    ? items.map((item) => `
+      <article>
+        <span class="timeline-mark"></span>
+        <div><strong>${escapeHtml(item.action_label || item.action)}</strong><p>${escapeHtml(item.actor?.display_name || item.actor?.email || "系统成员")} · ${escapeHtml(item.resource_label || item.resource_type || "系统")}</p></div>
+        <time>${escapeHtml(formatDateTime(item.created_at))}</time>
+      </article>`).join("")
+    : `<div class="workspace-empty">当前没有可查看的审计记录。</div>`;
+}
+
+function renderWorkspaceOps() {
+  const monitoring = state.workspaceConsole.monitoring || {};
+  const alertStatus = state.workspaceConsole.alertStatus || {};
+  const backups = state.workspaceConsole.backups || {};
+  const health = monitoring.health_state || "unknown";
+  const healthLabels = { healthy: "运行正常", warn: "需要关注", critical: "存在故障", unknown: "待检查" };
+  $("workspaceHealthPill").textContent = healthLabels[health] || healthLabels.unknown;
+  $("workspaceHealthPill").dataset.health = health;
+  $("workspaceOpsMetrics").innerHTML = (monitoring.metrics || []).map((item) => {
+    const displayValue = item.key === "latest_audit_at" && item.value ? formatDateTime(item.value) : item.display_value;
+    return `<article><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(displayValue)}</strong><small>${escapeHtml(opsMetricNotes[item.key] || "运行监测指标")}</small></article>`;
+  }).join("") || `<div class="workspace-empty">暂无运行指标。</div>`;
+  $("workspaceAlerts").innerHTML = (monitoring.alerts || []).length
+    ? monitoring.alerts.map((item) => `<article class="workspace-alert is-${escapeHtml(item.severity)}"><span>${escapeHtml(alertSeverityLabels[item.severity] || item.severity)}</span><div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.message)}</p></div></article>`).join("")
+    : `<div class="workspace-empty is-success">当前没有需要处理的运行告警。</div>`;
+  $("workspaceBackupList").innerHTML = (backups.items || []).length
+    ? backups.items.map((item) => `<article class="workspace-list-item"><span class="workspace-row-avatar is-backup">DB</span><div><strong>${escapeHtml(item.filename)}</strong><span>${escapeHtml(item.size_label || "SQLite 快照")}</span></div><div class="workspace-row-meta"><span>${escapeHtml(formatDateTime(item.created_at))}</span><small>SHA-256 已记录</small></div><button class="text-button" type="button" data-verify-backup="${escapeHtml(item.filename)}">校验</button></article>`).join("")
+    : `<div class="workspace-empty">尚未创建数据库备份。</div>`;
+  $("workspaceCreateBackupButton").disabled = !hasPermission("ops.manage");
+  $("workspaceRunAutomationButton").disabled = !hasPermission("ops.manage");
+  $("workspaceDispatchAlertsButton").disabled = !hasPermission("alerts.manage") || !alertStatus.enabled || !alertStatus.configured;
+  $("workspaceDispatchAlertsButton").title = alertStatus.configured ? "发送当前告警" : "需要先配置告警 Webhook";
+}
+
+function renderWorkspaceBrand() {
+  const brand = state.brandSettings || {};
+  $("workspaceBrandName").value = brand.brand_name || "ViralPick AI";
+  $("workspaceReportLabel").value = brand.report_label || "店铺经营分析报告";
+  $("workspaceLogoUrl").value = brand.logo_url || "";
+  $("workspacePrimaryColor").value = brand.primary_color || "#00a99d";
+  $("workspaceAccentColor").value = brand.accent_color || "#f0a51b";
+  $("workspaceCoverStyle").innerHTML = (brand.cover_styles || []).map((item) => `<option value="${escapeHtml(item.value)}" ${item.value === brand.cover_style ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("");
+  const canManage = Boolean(brand.can_manage && hasPermission("brand.manage"));
+  $("workspaceBrandForm").querySelectorAll("input, select, button").forEach((node) => {
+    node.disabled = !canManage;
+  });
+  const submit = $("workspaceBrandForm").querySelector("button[type='submit']");
+  submit.hidden = !canManage;
+  const accessNote = $("workspaceBrandAccessNote");
+  accessNote.hidden = canManage;
+  accessNote.textContent = canManage ? "" : "当前角色可查看品牌配置；只有工作空间所有者或管理员可以修改。";
+}
+
+async function copyText(value) {
+  const text = String(value || "");
+  if (!text) return false;
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (_error) {
+    const input = document.createElement("textarea");
+    input.value = text;
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    const copied = document.execCommand("copy");
+    input.remove();
+    return copied;
+  }
 }
 
 function saveSession(session) {
@@ -350,6 +711,10 @@ function saveSession(session) {
 
 async function enterWithSession(session) {
   saveSession(session);
+  // Login/register payloads intentionally stay compact. Refresh the canonical
+  // user context before rendering so role-based navigation is correct on the
+  // very first authenticated screen, not only after a browser reload.
+  state.currentUser = await api.me();
   showAppScreen();
   routeTo(currentRoute());
   setAuthMessage("");
@@ -1774,6 +2139,150 @@ async function copyReport() {
   }, 1400);
 }
 
+async function handleInvitationAccept(event) {
+  event.preventDefault();
+  const password = $("invitePassword").value;
+  const confirmation = $("invitePasswordConfirm").value;
+  if (!state.invitationToken || !state.invitation) {
+    setAuthMessage("邀请信息已失效，请联系管理员重新发送。", "is-error");
+    return;
+  }
+  if (password.length < 8) {
+    setAuthMessage("密码至少需要 8 位。", "is-error");
+    return;
+  }
+  if (password !== confirmation) {
+    setAuthMessage("两次输入的密码不一致。", "is-error");
+    return;
+  }
+  const submit = $("inviteForm").querySelector("button[type='submit']");
+  submit.disabled = true;
+  submit.textContent = "正在加入…";
+  try {
+    await api.acceptInvitation(state.invitationToken, {
+      display_name: $("inviteDisplayName").value.trim(),
+      password,
+      password_confirm: confirmation,
+    });
+    const invitedEmail = state.invitation.email || "";
+    state.invitationToken = "";
+    state.invitation = null;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    setAuthMode("login");
+    $("loginEmail").value = invitedEmail;
+    $("loginPassword").value = "";
+    setAuthMessage("已加入工作空间，请使用新密码登录。", "is-success");
+    $("loginPassword").focus();
+  } catch (error) {
+    setAuthMessage(error?.message || "加入工作空间失败，请重新检查邀请信息。", "is-error");
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "加入工作空间";
+  }
+}
+
+async function handleWorkspaceInvite(event) {
+  event.preventDefault();
+  const submit = $("workspaceInviteForm").querySelector("button[type='submit']");
+  submit.disabled = true;
+  submit.textContent = "生成中…";
+  try {
+    const invitation = await api.createTeamInvitation({
+      display_name: $("workspaceInviteName").value.trim(),
+      email: $("workspaceInviteEmail").value.trim(),
+      role: $("workspaceInviteRole").value,
+      expires_in_days: Number($("workspaceInviteDays").value || 7),
+    });
+    const inviteUrl = new URL(invitation.invite_url || `#invite=${invitation.invite_token}`, window.location.href).href;
+    const result = $("workspaceInviteResult");
+    result.hidden = false;
+    result.innerHTML = `<div><span>邀请已生成</span><strong>${escapeHtml(invitation.email)}</strong><small>${escapeHtml(formatDateTime(invitation.expires_at))} 到期</small></div><button type="button" data-copy-invite-url="${escapeHtml(inviteUrl)}">复制邀请链接</button>`;
+    $("workspaceInviteForm").reset();
+    state.workspaceConsole.invitations = await api.teamInvitations();
+    state.workspaceConsole.team = await api.teamMembers();
+    renderWorkspaceTeam();
+    showToast("团队邀请已生成", "复制链接并通过可信渠道发送给成员。", "success");
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "生成邀请";
+  }
+}
+
+async function revokeWorkspaceInvitation(invitationId) {
+  await api.revokeTeamInvitation(invitationId);
+  state.workspaceConsole.invitations = await api.teamInvitations();
+  renderWorkspaceTeam();
+  showToast("邀请已撤销", "该邀请链接已立即失效。", "success");
+}
+
+async function createWorkspaceBackup() {
+  const button = $("workspaceCreateBackupButton");
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = "备份中…";
+  try {
+    const backup = await api.createBackup();
+    const [backups, monitoring] = await Promise.all([api.opsBackups(), api.opsMonitoring()]);
+    state.workspaceConsole.backups = backups;
+    state.workspaceConsole.monitoring = monitoring;
+    renderWorkspaceOverview();
+    renderWorkspaceOps();
+    showToast("数据库备份已创建", `${backup.filename} 已写入并生成校验值。`, "success");
+  } finally {
+    button.disabled = false;
+    button.textContent = label;
+  }
+}
+
+async function verifyWorkspaceBackup(filename) {
+  const result = await api.verifyBackup(filename);
+  showToast(result.valid ? "备份校验通过" : "备份校验异常", result.valid ? `${filename} 完整性正常。` : "请立即创建新备份并检查存储。", result.valid ? "success" : "error", 5200);
+}
+
+async function runWorkspaceAutomation() {
+  const button = $("workspaceRunAutomationButton");
+  const label = button.textContent;
+  button.disabled = true;
+  button.textContent = "执行中…";
+  try {
+    const result = await api.runOpsAutomationOnce();
+    showToast("后台任务已执行", `已检查 ${result.workspace_count || 0} 个工作空间。`, "success");
+  } finally {
+    button.disabled = false;
+    button.textContent = label;
+  }
+}
+
+async function dispatchWorkspaceAlerts() {
+  const result = await api.dispatchOpsAlerts();
+  showToast("告警已发送", `已处理 ${result.dispatched || result.sent || 0} 条告警。`, "success");
+}
+
+async function saveWorkspaceBrand(event) {
+  event.preventDefault();
+  const submit = $("workspaceBrandForm").querySelector("button[type='submit']");
+  const label = submit.textContent;
+  submit.disabled = true;
+  submit.textContent = "保存中…";
+  try {
+    const settings = await api.updateBrandSettings({
+      brand_name: $("workspaceBrandName").value.trim(),
+      report_label: $("workspaceReportLabel").value.trim(),
+      logo_url: $("workspaceLogoUrl").value.trim(),
+      primary_color: $("workspacePrimaryColor").value,
+      accent_color: $("workspaceAccentColor").value,
+      cover_style: $("workspaceCoverStyle").value,
+    });
+    state.brandSettings = settings;
+    applyBrandSettings(settings);
+    renderWorkspaceBrand();
+    showToast("品牌设置已保存", "应用标题和后续报告将使用新的品牌设置。", "success");
+  } finally {
+    submit.disabled = false;
+    submit.textContent = label;
+  }
+}
+
 async function handleLogin(event) {
   event.preventDefault();
   setAuthMessage("正在进入系统...");
@@ -1831,6 +2340,7 @@ async function handleLogout() {
   window.localStorage.removeItem(api.tokenKey);
   state.currentUser = null;
   state.assistantOpen = false;
+  closeWorkspaceConsole();
   showAuthScreen();
 }
 
@@ -1849,7 +2359,50 @@ function bindEvents() {
   });
   $("loginForm").addEventListener("submit", (event) => handleLogin(event).catch(showError));
   $("registerForm").addEventListener("submit", (event) => handleRegister(event).catch(showError));
+  $("inviteForm").addEventListener("submit", (event) => handleInvitationAccept(event).catch(showError));
+  $("inviteBackButton").addEventListener("click", () => {
+    state.invitationToken = "";
+    state.invitation = null;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    setAuthMode("login");
+    setAuthMessage("可以使用已有账号登录。", "is-success");
+  });
   $("logoutButton").addEventListener("click", () => handleLogout().catch(showError));
+  $("workspaceMenuButton").addEventListener("click", () => openWorkspaceConsole().catch(showError));
+  $("workspaceDrawerClose").addEventListener("click", closeWorkspaceConsole);
+  $("workspaceOverlay").addEventListener("click", closeWorkspaceConsole);
+  $("workspaceRefreshButton").addEventListener("click", () => loadWorkspaceConsole({ announce: true }).catch(showError));
+  document.querySelectorAll("[data-workspace-tab]").forEach((button) => {
+    button.addEventListener("click", () => setWorkspaceTab(button.dataset.workspaceTab));
+    button.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+      event.preventDefault();
+      const visible = [...document.querySelectorAll("[data-workspace-tab]")].filter((item) => !item.hidden);
+      const index = visible.indexOf(button);
+      const offset = ["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1;
+      const next = visible[(index + offset + visible.length) % visible.length];
+      setWorkspaceTab(next.dataset.workspaceTab);
+      next.focus();
+    });
+  });
+  $("workspaceInviteForm").addEventListener("submit", (event) => handleWorkspaceInvite(event).catch(showError));
+  $("workspaceInviteResult").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-copy-invite-url]");
+    if (!button) return;
+    copyText(button.dataset.copyInviteUrl).then((copied) => showToast(copied ? "邀请链接已复制" : "复制未完成", copied ? "现在可以发送给团队成员。" : "请手动选择并复制链接。", copied ? "success" : "warning")).catch(showError);
+  });
+  $("workspaceInvitationList").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-revoke-invitation]");
+    if (button) revokeWorkspaceInvitation(button.dataset.revokeInvitation).catch(showError);
+  });
+  $("workspaceCreateBackupButton").addEventListener("click", () => createWorkspaceBackup().catch(showError));
+  $("workspaceRunAutomationButton").addEventListener("click", () => runWorkspaceAutomation().catch(showError));
+  $("workspaceDispatchAlertsButton").addEventListener("click", () => dispatchWorkspaceAlerts().catch(showError));
+  $("workspaceBackupList").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-verify-backup]");
+    if (button) verifyWorkspaceBackup(button.dataset.verifyBackup).catch(showError);
+  });
+  $("workspaceBrandForm").addEventListener("submit", (event) => saveWorkspaceBrand(event).catch(showError));
   document.querySelectorAll("[data-page]").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
@@ -1897,6 +2450,25 @@ function bindEvents() {
     askAssistant(text).catch(showError);
   });
   document.addEventListener("keydown", (event) => {
+    if (state.workspaceOpen && event.key === "Escape") {
+      event.preventDefault();
+      closeWorkspaceConsole();
+      return;
+    }
+    if (state.workspaceOpen && event.key === "Tab") {
+      const focusable = [...$("workspaceDrawer").querySelectorAll('button:not([disabled]):not([hidden]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter((node) => !node.closest("[hidden]"));
+      if (focusable.length) {
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" && $("authScreen")?.hidden) {
       event.preventDefault();
       $("globalSearch")?.focus();

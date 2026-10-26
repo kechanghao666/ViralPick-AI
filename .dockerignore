@@ -2,6 +2,7 @@
 .github
 .pytest_cache
 .pytest-tmp
+.playwright-cli
 .mypy_cache
 .ruff_cache
 .coverage

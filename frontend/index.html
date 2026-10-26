@@ -71,6 +71,27 @@
           </div>
           <button class="primary-button wide" type="submit">创建经营空间</button>
         </form>
+        <form class="auth-form invite-form" id="inviteForm" aria-labelledby="inviteHeading" hidden>
+          <div class="invite-summary" id="inviteSummary">
+            <span>团队邀请</span>
+            <h2 id="inviteHeading">加入经营空间</h2>
+            <p id="inviteSummaryText">正在读取邀请信息…</p>
+          </div>
+          <label>
+            <span>姓名</span>
+            <input id="inviteDisplayName" type="text" placeholder="请输入姓名" autocomplete="name" required />
+          </label>
+          <label>
+            <span>设置密码</span>
+            <input id="invitePassword" type="password" placeholder="至少 8 位" autocomplete="new-password" required />
+          </label>
+          <label>
+            <span>确认密码</span>
+            <input id="invitePasswordConfirm" type="password" placeholder="再次输入密码" autocomplete="new-password" required />
+          </label>
+          <button class="primary-button wide" type="submit">加入工作空间</button>
+          <button class="auth-secondary-button" type="button" id="inviteBackButton">返回账号登录</button>
+        </form>
         <div class="auth-message" id="authMessage" aria-live="polite"></div>
       </div>
     </section>
@@ -122,8 +143,15 @@
             </div>
             <button class="ghost-button" type="button" id="refreshButton" aria-label="刷新全部经营数据">刷新数据</button>
             <div class="user-chip" id="userChip">
-              <span id="currentUserName">经营账号</span>
-              <button type="button" id="logoutButton">退出</button>
+              <button class="workspace-menu-trigger" type="button" id="workspaceMenuButton" aria-expanded="false" aria-controls="workspaceDrawer">
+                <span class="user-chip-avatar" id="currentUserInitial" aria-hidden="true">VP</span>
+                <span class="user-chip-copy">
+                  <strong id="currentUserName">经营账号</strong>
+                  <small id="currentUserRole">工作空间</small>
+                </span>
+                <span class="user-chip-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <button class="user-chip-logout" type="button" id="logoutButton">退出</button>
             </div>
           </div>
         </header>
@@ -440,6 +468,118 @@
         </section>
       </main>
     </div>
+
+    <div class="workspace-overlay" id="workspaceOverlay" hidden></div>
+    <aside class="workspace-drawer" id="workspaceDrawer" role="dialog" aria-modal="true" aria-labelledby="workspaceDrawerTitle" tabindex="-1" hidden>
+      <header class="workspace-drawer-header">
+        <div>
+          <span class="workspace-kicker">Workspace control</span>
+          <h2 id="workspaceDrawerTitle">工作空间控制台</h2>
+          <p>管理成员、权限、品牌、审计与运行状态</p>
+        </div>
+        <button class="workspace-close" type="button" id="workspaceDrawerClose" aria-label="关闭工作空间控制台">×</button>
+      </header>
+
+      <div class="workspace-drawer-layout">
+        <nav class="workspace-tabs" aria-label="工作空间设置">
+          <button class="is-active" type="button" data-workspace-tab="overview" aria-selected="true">总览</button>
+          <button type="button" data-workspace-tab="team" aria-selected="false">团队</button>
+          <button type="button" data-workspace-tab="audit" aria-selected="false">审计</button>
+          <button type="button" data-workspace-tab="ops" aria-selected="false">运行</button>
+          <button type="button" data-workspace-tab="brand" aria-selected="false">品牌</button>
+        </nav>
+
+        <div class="workspace-panels">
+          <section class="workspace-panel is-active" data-workspace-panel="overview">
+            <div class="workspace-section-heading">
+              <div><span>账户与权限</span><h3>工作空间总览</h3></div>
+              <button class="ghost-button mini" type="button" id="workspaceRefreshButton">刷新</button>
+            </div>
+            <div class="workspace-identity" id="workspaceIdentity"></div>
+            <div class="workspace-stat-grid" id="workspaceStats"></div>
+            <div class="workspace-subsection">
+              <div class="workspace-subheading"><strong>当前能力范围</strong><span>由角色权限实时计算</span></div>
+              <div class="capability-cloud" id="workspaceCapabilities"></div>
+            </div>
+          </section>
+
+          <section class="workspace-panel" data-workspace-panel="team" hidden>
+            <div class="workspace-section-heading">
+              <div><span>成员与角色</span><h3>团队协作</h3></div>
+              <em id="workspaceTeamCount">0 位成员</em>
+            </div>
+            <form class="workspace-inline-form" id="workspaceInviteForm">
+              <label><span>姓名</span><input id="workspaceInviteName" type="text" placeholder="成员姓名" required /></label>
+              <label><span>邮箱</span><input id="workspaceInviteEmail" type="email" placeholder="name@example.com" required /></label>
+              <label><span>角色</span><select id="workspaceInviteRole"><option value="analyst">分析师</option><option value="viewer">只读成员</option><option value="admin">管理员</option></select></label>
+              <label><span>有效期</span><select id="workspaceInviteDays"><option value="7">7 天</option><option value="14">14 天</option><option value="30">30 天</option></select></label>
+              <button class="primary-button" type="submit">生成邀请</button>
+            </form>
+            <div class="workspace-invite-result" id="workspaceInviteResult" hidden></div>
+            <div class="workspace-subsection">
+              <div class="workspace-subheading"><strong>团队成员</strong><span>角色决定可见与可操作范围</span></div>
+              <div class="workspace-list" id="workspaceTeamList"></div>
+            </div>
+            <div class="workspace-subsection">
+              <div class="workspace-subheading"><strong>待接受邀请</strong><span>邀请可复制或撤销</span></div>
+              <div class="workspace-list" id="workspaceInvitationList"></div>
+            </div>
+          </section>
+
+          <section class="workspace-panel" data-workspace-panel="audit" hidden>
+            <div class="workspace-section-heading">
+              <div><span>行为留痕</span><h3>最近审计</h3></div>
+              <em id="workspaceAuditCount">0 条记录</em>
+            </div>
+            <div class="workspace-audit-summary" id="workspaceAuditSummary"></div>
+            <div class="workspace-timeline" id="workspaceAuditList"></div>
+          </section>
+
+          <section class="workspace-panel" data-workspace-panel="ops" hidden>
+            <div class="workspace-section-heading">
+              <div><span>健康与恢复</span><h3>运行保障</h3></div>
+              <span class="health-pill" id="workspaceHealthPill">检查中</span>
+            </div>
+            <div class="workspace-stat-grid" id="workspaceOpsMetrics"></div>
+            <div class="workspace-action-row">
+              <button class="primary-button" type="button" id="workspaceCreateBackupButton">创建数据库备份</button>
+              <button class="ghost-button" type="button" id="workspaceRunAutomationButton">执行一次后台任务</button>
+              <button class="ghost-button" type="button" id="workspaceDispatchAlertsButton">发送当前告警</button>
+            </div>
+            <div class="workspace-subsection">
+              <div class="workspace-subheading"><strong>当前告警</strong><span>按严重级别排序</span></div>
+              <div class="workspace-alerts" id="workspaceAlerts"></div>
+            </div>
+            <div class="workspace-subsection">
+              <div class="workspace-subheading"><strong>数据库备份</strong><span>支持完整性校验</span></div>
+              <div class="workspace-list" id="workspaceBackupList"></div>
+            </div>
+          </section>
+
+          <section class="workspace-panel" data-workspace-panel="brand" hidden>
+            <div class="workspace-section-heading">
+              <div><span>White label</span><h3>品牌与报告</h3></div>
+              <em>同步应用标题与报告封面</em>
+            </div>
+            <p class="workspace-access-note" id="workspaceBrandAccessNote" hidden></p>
+            <form class="workspace-brand-form" id="workspaceBrandForm">
+              <label><span>品牌名称</span><input id="workspaceBrandName" type="text" maxlength="80" required /></label>
+              <label><span>报告名称</span><input id="workspaceReportLabel" type="text" maxlength="100" required /></label>
+              <label class="span-2"><span>Logo URL</span><input id="workspaceLogoUrl" type="url" placeholder="https://example.com/logo.png" /></label>
+              <label><span>主色</span><input id="workspacePrimaryColor" type="color" /></label>
+              <label><span>强调色</span><input id="workspaceAccentColor" type="color" /></label>
+              <label class="span-2"><span>报告封面</span><select id="workspaceCoverStyle"></select></label>
+              <button class="primary-button" type="submit">保存品牌设置</button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <footer class="workspace-drawer-footer">
+        <span id="workspaceConsoleStatus">按需加载工作空间信息</span>
+        <small>敏感凭据不会在控制台中显示</small>
+      </footer>
+    </aside>
 
     <section class="assistant-widget" id="assistantWidget" hidden>
       <button class="assistant-toggle" type="button" id="aiAssistantToggle" aria-expanded="false" aria-controls="assistantPanel">

@@ -40,6 +40,8 @@ def test_owner_can_view_audit_logs_and_filter_by_action(client):
     assert filtered.status_code == 200
     assert filtered_payload["data"]["items"]
     assert all(item["action"] == "report.generate" for item in filtered_payload["data"]["items"])
+    assert all(item["action_label"] == "生成报告" for item in filtered_payload["data"]["items"])
+    assert all(item["resource_label"] == "经营报告" for item in filtered_payload["data"]["items"])
 
 
 def test_non_admin_cannot_view_audit_logs(client):
